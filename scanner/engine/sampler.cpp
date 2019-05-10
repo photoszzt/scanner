@@ -19,6 +19,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 namespace scanner {
 namespace internal {

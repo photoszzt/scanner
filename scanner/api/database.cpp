@@ -232,8 +232,10 @@ Result Database::new_table(const std::string& table_name,
       s_write(output_file.get(), buffer, buffer_size);
     }
 
-    BACKOFF_FAIL(output_file->save());
-    BACKOFF_FAIL(output_metadata_file->save());
+    BACKOFF_FAIL(output_file->save(),
+        "while trying to save " + output_file->path());
+    BACKOFF_FAIL(output_metadata_file->save(),
+        "while trying to save " + output_metadata_file->path());
   }
 
   proto::Result result;

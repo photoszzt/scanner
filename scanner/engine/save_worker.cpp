@@ -227,16 +227,18 @@ void SaveWorker::new_task(i32 table_id, i32 task_id,
   for (size_t out_idx = 0; out_idx < column_types.size(); ++out_idx) {
     const std::string output_path =
         table_item_output_path(table_id, out_idx, task_id);
-    const std::string output_metdata_path =
+    const std::string output_metadata_path =
         table_item_metadata_path(table_id, out_idx, task_id);
 
     WriteFile* output_file = nullptr;
-    BACKOFF_FAIL(storage_->make_write_file(output_path, output_file));
+    BACKOFF_FAIL(storage_->make_write_file(output_path, output_file),
+        "while trying to make write file for " + output_path);
     output_.emplace_back(output_file);
 
     WriteFile* output_metadata_file = nullptr;
     BACKOFF_FAIL(
-        storage_->make_write_file(output_metdata_path, output_metadata_file));
+        storage_->make_write_file(output_metadata_path, output_metadata_file),
+        "while trying to make write file for " + output_metadata_path);
     output_metadata_.emplace_back(output_metadata_file);
 
     if (column_types[out_idx] == ColumnType::Video) {

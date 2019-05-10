@@ -287,7 +287,7 @@ bool LoadWorker::yield(i32 item_size,
           // Video was encoded using h264
 
           read_video_column(profiler_, entry, valid_offsets, item_start_row,
-                            eval_work_entry.columns[out_col_idx], 
+                            eval_work_entry.columns[out_col_idx],
                             load_to_disk_);
         } else {
           // Video was encoded as individual images
@@ -338,7 +338,7 @@ bool LoadWorker::done() { return current_row_ >= total_rows_; }
 
 void writeDecodeArgsAndBufferToDisk(proto::DecodeArgs& decode_args, u8* buffer, size_t buffer_size,
               i64 start_frame){
-  
+
   // Write the new address book back to disk.
   std::string start_frame_str = std::to_string(start_frame);
   // std::cout << "writing decode_args and buffer for start frame " << start_frame_str << std::endl;
@@ -351,7 +351,7 @@ void writeDecodeArgsAndBufferToDisk(proto::DecodeArgs& decode_args, u8* buffer, 
   std::fstream outputBuffer("start_frame" + start_frame_str + ".bin",
           std::ios::out | std::ios::trunc | std::ios::binary);
   outputBuffer.write((char *) buffer, buffer_size);
-  
+
 }
 
 
@@ -447,9 +447,9 @@ void read_video_column(Profiler& profiler, const VideoIndexEntry& index_entry,
 
     // save to disk or not
     if (load_to_disk) {
-      writeDecodeArgsAndBufferToDisk(decode_args, buffer, buffer_size, 
+      writeDecodeArgsAndBufferToDisk(decode_args, buffer, buffer_size,
         start_frame + intervals.valid_frames[i][0]);
-    } 
+    }
     insert_element(element_list, decode_args_buffer, size);
   }
 }
@@ -466,12 +466,13 @@ void LoadWorker::read_other_column(i32 table_id, i32 column_id, i32 item_id,
   {
     std::unique_ptr<RandomReadFile> file;
     StoreResult result;
-    BACKOFF_FAIL(make_unique_random_read_file(
-        storage_.get(), table_item_metadata_path(table_id, column_id, item_id),
-        file));
+    const std::string p = table_item_metadata_path(table_id, column_id, item_id);
+    BACKOFF_FAIL(make_unique_random_read_file(storage_.get(), p, file),
+        "while trying to make read file for " + p);
 
     u64 file_size = 0;
-    BACKOFF_FAIL(file->get_size(file_size));
+    BACKOFF_FAIL(file->get_size(file_size),
+        "while trying to get size for " + file->path());
 
     // Read number of elements in file
     u64 pos = 0;
@@ -492,12 +493,13 @@ void LoadWorker::read_other_column(i32 table_id, i32 column_id, i32 item_id,
 
   std::unique_ptr<RandomReadFile> file;
   StoreResult result;
-  BACKOFF_FAIL(make_unique_random_read_file(
-      storage_.get(), table_item_output_path(table_id, column_id, item_id),
-      file));
+  const std::string p = table_item_output_path(table_id, column_id, item_id);
+  BACKOFF_FAIL(make_unique_random_read_file(storage_.get(), p, file),
+      "while trying to make read file for " + p);
 
   u64 file_size = 0;
-  BACKOFF_FAIL(file->get_size(file_size));
+  BACKOFF_FAIL(file->get_size(file_size),
+      "while trying to get size for " + file->path());
 
   u64 pos = 0;
   // Determine start and end position of elements to read in file

@@ -21,6 +21,7 @@
 #include "scanner/util/profiler.h"
 
 #include <vector>
+#include <functional>
 
 namespace scanner {
 
