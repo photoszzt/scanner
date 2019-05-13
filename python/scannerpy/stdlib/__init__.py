@@ -1,2 +1,2 @@
-from net_descriptor import NetDescriptor
-import loaders
+from . net_descriptor import NetDescriptor
+from . loaders import *

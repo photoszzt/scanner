@@ -19,7 +19,7 @@ class ProtobufGenerator:
             '{}/build/stdlib/stdlib_pb2.py'.format(cfg.module_dir))
 
     def add_module(self, path):
-        if isinstance(path, basestring):
+        if isinstance(path, str):
             if not os.path.isfile(path):
                 raise ScannerException('Protobuf path does not exist: {}'
                                        .format(path))

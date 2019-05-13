@@ -3,49 +3,15 @@
 #include "scanner/engine/op_registry.h"
 #include "scanner/util/common.h"
 
-#include <boost/python.hpp>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <thread>
 
 namespace scanner {
-namespace {
-class GILRelease {
- public:
-  inline GILRelease() {
-    PyEval_InitThreads();
-    m_thread_state = PyEval_SaveThread();
-  }
 
-  inline ~GILRelease() {
-    PyEval_RestoreThread(m_thread_state);
-    m_thread_state = NULL;
-  }
+namespace py = pybind11;
 
- private:
-  PyThreadState* m_thread_state;
-};
-}
-
-namespace py = boost::python;
-
-template <typename T>
-inline std::vector<T> to_std_vector(const py::object& iterable) {
-  return std::vector<T>(py::stl_input_iterator<T>(iterable),
-                        py::stl_input_iterator<T>());
-}
-
-template <class T>
-py::list to_py_list(std::vector<T> vector) {
-  typename std::vector<T>::iterator iter;
-  py::list list;
-  for (iter = vector.begin(); iter != vector.end(); ++iter) {
-    list.append(*iter);
-  }
-  return list;
-}
-
-std::string default_machine_params_wrapper() {
+py::bytes default_machine_params_wrapper() {
   MachineParameters params = default_machine_params();
   proto::MachineParameters params_proto;
   params_proto.set_num_cpus(params.num_cpus);
@@ -58,17 +24,15 @@ std::string default_machine_params_wrapper() {
   std::string output;
   bool success = params_proto.SerializeToString(&output);
   LOG_IF(FATAL, !success) << "Failed to serialize machine params";
-  return output;
+  return py::bytes(output);
 }
 
 proto::Result start_master_wrapper(Database& db, const std::string& port, bool watchdog) {
-  GILRelease r;
   return db.start_master(default_machine_params(), port, watchdog);
 }
 
 proto::Result start_worker_wrapper(Database& db, const std::string& params_s,
                                    const std::string& port, bool watchdog) {
-  GILRelease r;
   proto::MachineParameters params_proto;
   params_proto.ParseFromString(params_s);
   MachineParameters params;
@@ -82,60 +46,45 @@ proto::Result start_worker_wrapper(Database& db, const std::string& params_s,
   return db.start_worker(params, port, watchdog);
 }
 
-py::list ingest_videos_wrapper(Database& db, const py::list table_names,
-                               const py::list paths) {
+std::vector<FailedVideo> ingest_videos_wrapper(Database& db, std::vector<std::string> table_names,
+                               std::vector<std::string> paths) {
+  py::gil_scoped_release release;
   std::vector<FailedVideo> failed_videos;
-  {
-    GILRelease r;
-    db.ingest_videos(to_std_vector<std::string>(table_names),
-                     to_std_vector<std::string>(paths), failed_videos);
-  }
-  return to_py_list<FailedVideo>(failed_videos);
+  db.ingest_videos(table_names, paths, failed_videos);
+  return failed_videos;
 }
 
 Result wait_for_server_shutdown_wrapper(Database& db) {
-  GILRelease r;
+  py::gil_scoped_release release;
   return db.wait_for_server_shutdown();
 }
 
 Result new_table_wrapper(Database& db, const std::string& name,
-                         const py::list columns, const py::list rows) {
-  std::vector<py::list> rows_py1 = to_std_vector<py::list>(rows);
-  std::vector<std::vector<std::string>> rows_py2;
-  for (auto l : rows_py1) {
-    rows_py2.push_back(to_std_vector<std::string>(l));
-  }
-  std::vector<std::string> columns_py = to_std_vector<std::string>(columns);
-
-  GILRelease r;
-  return db.new_table(name, columns_py, rows_py2);
+                         std::vector<std::string> columns, std::vector<std::vector<std::string>> rows) {
+  py::gil_scoped_release release;
+  return db.new_table(name, columns, rows);
 }
 
-boost::shared_ptr<Database> initWrapper(storehouse::StorageConfig* sc,
-                                        const std::string& db_path,
-                                        const std::string& master_addr) {
-  GILRelease r;
-  return boost::shared_ptr<Database>( new Database(sc, db_path, master_addr) );
-}
-
-BOOST_PYTHON_MODULE(libscanner) {
-  boost::python::numpy::initialize();
-  using namespace py;
-  class_<Database, boost::noncopyable>("Database", no_init)
-      .def("__init__", make_constructor(&initWrapper))
+PYBIND11_MODULE(_python, m) {
+  m.doc() = "Scanner C library";
+  m.attr("__name__") = "scannerpy._python";
+  py::class_<Database>(m, "Database")
+      .def(py::init<storehouse::StorageConfig*, const std::string&, const std::string&>())
       .def("ingest_videos", &Database::ingest_videos);
-  class_<FailedVideo>("FailedVideo", no_init)
+
+  py::class_<FailedVideo>(m, "FailedVideo")
       .def_readonly("path", &FailedVideo::path)
       .def_readonly("message", &FailedVideo::message);
-  class_<proto::Result>("Result", no_init)
-      .def("success", &proto::Result::success,
-           return_value_policy<return_by_value>())
-      .def("msg", &proto::Result::msg, return_value_policy<return_by_value>());
-  def("start_master", start_master_wrapper);
-  def("start_worker", start_worker_wrapper);
-  def("ingest_videos", ingest_videos_wrapper);
-  def("wait_for_server_shutdown", wait_for_server_shutdown_wrapper);
-  def("default_machine_params", default_machine_params_wrapper);
-  def("new_table", new_table_wrapper);
+
+  py::class_<proto::Result>(m, "Result")
+      .def("success", &proto::Result::success)
+      .def("msg", &proto::Result::msg);
+
+  m.def("start_master", &start_master_wrapper);
+  m.def("start_worker", &start_worker_wrapper);
+  m.def("ingest_videos", &ingest_videos_wrapper);
+  m.def("wait_for_server_shutdown", &wait_for_server_shutdown_wrapper);
+  m.def("default_machine_params", &default_machine_params_wrapper);
+  m.def("new_table", &new_table_wrapper);
 }
 }

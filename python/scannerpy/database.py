@@ -35,7 +35,7 @@ from scannerpy.protobuf_generator import ProtobufGenerator
 from scannerpy.job import Job
 from scannerpy.bulk_job import BulkJob
 
-from storehousepy import StorageConfig, StorageBackend
+from storehouse import StorageConfig, StorageBackend
 
 def start_master(port=None, config=None, config_path=None, block=False, watchdog=True):
     """
@@ -57,7 +57,7 @@ def start_master(port=None, config=None, config_path=None, block=False, watchdog
     port = port or config.master_port
 
     # Load all protobuf types
-    import libscanner as bindings
+    import scannerpy._python as bindings
     db = bindings.Database(
         config.storage_config,
         config.db_path,
@@ -95,7 +95,7 @@ def start_worker(master_address, machine_params=None, port=None, config=None,
     port = port or config.worker_port
 
     # Load all protobuf types
-    import libscanner as bindings
+    import scannerpy._python as bindings
     db = bindings.Database(
         config.storage_config,
         #storage_config,
@@ -151,7 +151,7 @@ class Database(object):
 
         self._master = None
 
-        import libscanner as bindings
+        import scannerpy._python as bindings
         self._bindings = bindings
 
         # Setup database metadata
@@ -340,7 +340,7 @@ class Database(object):
             import scanner.engine.rpc_pb2 as rpc_types
             import scanner.engine.rpc_pb2_grpc as grpc_types
             import scanner.types_pb2 as misc_types
-            import libscanner as bindings
+            import scannerpy._python as bindings
 
             channel = grpc.insecure_channel(
                 master_address,
@@ -380,12 +380,12 @@ class Database(object):
 
         if master is None:
             self._master_address = (
-                self.config.master_address + ':' + self.config.master_port)
+                str(self.config.master_address) + ':' + str(self.config.master_port))
         else:
             self._master_address = master
         if workers is None:
             self._worker_addresses = [
-                self.config.master_address + ':' + self.config.worker_port]
+                str(self.config.master_address) + ':' + str(self.config.worker_port)]
         else:
             self._worker_addresses = workers
 
@@ -407,7 +407,7 @@ class Database(object):
                 self._worker_conns = None
                 machine_params = self._bindings.default_machine_params()
                 res = self._bindings.start_master(
-                    self._db, self.config.master_port.encode('ascii'), True).success
+                    self._db, self.config.master_port, True).success
                 assert res
                 res = self._connect_to_master()
                 assert res
