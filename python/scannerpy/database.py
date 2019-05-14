@@ -510,22 +510,22 @@ class Database(object):
 
     def stop_cluster(self):
         if self._start_cluster:
-           if self._master:
-               # Stop heartbeat
-               self._stop_heartbeat()
-               try:
-                   self._try_rpc(
-                       lambda: self._master.Shutdown(self.protobufs.Empty()))
-               except:
-                   pass
-               self._master = None
-           if self._master_conn:
-               self._master_conn.kill()
-               self._master_conn = None
-           if self._worker_conns:
-               for wc in self._worker_conns:
-                   wc.kill()
-               self._worker_conns = None
+            if self._master:
+                # Stop heartbeat
+                self._stop_heartbeat()
+                try:
+                    self._try_rpc(
+                        lambda: self._master.Shutdown(self.protobufs.Empty()))
+                except:
+                    pass
+                self._master = None
+            if self._master_conn:
+                self._master_conn.kill()
+                self._master_conn = None
+            if self._worker_conns:
+                for wc in self._worker_conns:
+                    wc.kill()
+                self._worker_conns = None
 
     def _try_rpc(self, fn):
         try:
@@ -704,7 +704,7 @@ class Database(object):
 
         self._cached_db_metadata = None
         return ([self.table(t) for (t, p) in videos
-                if p not in ingest_result.failed_paths],
+                 if p not in ingest_result.failed_paths],
                 failures)
 
     def ingest_video_collection(self, collection_name, videos, force=False):

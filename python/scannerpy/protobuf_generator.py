@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object
+from past.builtins import basestring
 import os.path
 import imp
 import sys
@@ -20,7 +21,7 @@ class ProtobufGenerator(object):
             '{}/build/stdlib/stdlib_pb2.py'.format(cfg.module_dir))
 
     def add_module(self, path):
-        if isinstance(path, str):
+        if isinstance(path, basestring):
             if not os.path.isfile(path):
                 raise ScannerException('Protobuf path does not exist: {}'
                                        .format(path))

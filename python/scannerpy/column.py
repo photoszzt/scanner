@@ -157,8 +157,8 @@ class Column(object):
         # If the column is a video, then dump the requested frames to disk as
         # PNGs and return the decoded PNGs
         if (self._descriptor.type == self._db.protobufs.Video and
-            self._video_descriptor.codec_type ==
-            self._db.protobufs.VideoDescriptor.H264):
+                self._video_descriptor.codec_type ==
+                self._db.protobufs.VideoDescriptor.H264):
             png_table_name = self._db._png_dump_prefix.format(self._table.name())
             if self._db.has_table(png_table_name):
                 png_table = self._db.table(png_table_name)
@@ -167,7 +167,6 @@ class Column(object):
                    png_table._descriptor.timestamp > \
                    self._table._descriptor.timestamp:
                     return png_table.load(['img'], parsers.image)
-            pair = [(self._table.name(), png_table_name)]
             op_args = {}
             frame = self._db.ops.FrameInput()
             op_args[frame] = self
@@ -176,7 +175,7 @@ class Column(object):
                 sampled_frame = frame.sample()
                 op_args[sampled_frame] = self._db.sampler.gather(rows)
                 enc_input = sampled_frame
-            img = self._db.ops.ImageEncoder(frame = enc_input)
+            img = self._db.ops.ImageEncoder(frame=enc_input)
             output_op = self._db.ops.Output(columns=[img])
             op_args[output_op] = png_table_name
             job = Job(op_args=op_args)
