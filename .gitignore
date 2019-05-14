@@ -16,3 +16,4 @@ python/*.egg-info
 
 python/scannerpy/include
 python/scannerpy/_python.cpython-36m-x86_64-linux-gnu.so
+.mypy_cache
