@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from builtins import object
 import grpc
 import copy
 
 from scannerpy.common import *
 
-class OpColumn:
+class OpColumn(object):
     def __init__(self, db, op, col, typ):
         self._db = db
         self._op = op
@@ -36,7 +37,7 @@ class OpColumn:
         else:
             raise ScannerException('Compression codec {} not currently '
                                    'supported. Available codecs are: {}.'
-                                   .format(' '.join(codecs.keys())))
+                                   .format(' '.join(list(codecs.keys()))))
 
     def compress_video(self, quality = -1, bitrate = -1, keyframe_distance = -1):
         self._assert_is_video()
@@ -72,7 +73,7 @@ class OpColumn:
         return new_col
 
 
-class OpGenerator:
+class OpGenerator(object):
     """
     Creates Op instances to define a computation.
 
@@ -121,7 +122,7 @@ class OpGenerator:
         return make_op
 
 
-class Op:
+class Op(object):
     def __init__(self, db, name, inputs, device, batch=-1, warmup=0,
                  stencil=[0], args={}):
         self._db = db
@@ -199,7 +200,7 @@ class Op:
             if len(self._args) > 0:
                 proto_name = self._name + 'Args'
                 args_proto = getattr(self._db.protobufs, proto_name)()
-                for k, v in self._args.iteritems():
+                for k, v in self._args.items():
                     try:
                         setattr(args_proto, k, v)
                     except AttributeError:

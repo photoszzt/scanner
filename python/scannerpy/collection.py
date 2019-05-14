@@ -1,9 +1,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import object
 from scannerpy.common import *
 
 
-class Collection:
+class Collection(object):
     """
     A set of Table objects.
     """

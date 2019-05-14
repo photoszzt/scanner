@@ -1,4 +1,6 @@
-
+from __future__ import absolute_import, division, print_function, unicode_literals
+from builtins import zip
+from builtins import object
 import struct
 
 from timeit import default_timer as now
@@ -6,7 +8,7 @@ from timeit import default_timer as now
 from scannerpy.common import *
 from scannerpy.column import Column
 
-class Table:
+class Table(object):
     """
     A table in a Database.
 

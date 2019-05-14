@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import object
 class KernelConfig(object):
     def __init__(self, device_handles, input_columns, input_column_types,
                  output_columns, args, node_id):

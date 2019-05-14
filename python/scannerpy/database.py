@@ -1,4 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import os
 import os.path
 import sys
@@ -326,7 +331,7 @@ class Database(object):
 
     def _run_remote_cmd(self, host, cmd):
         host_ip, _, _ = host.partition(':')
-        host_ip = unicode(socket.gethostbyname(host_ip), "utf-8")
+        host_ip = str(socket.gethostbyname(host_ip), "utf-8")
         if ipaddress.ip_address(host_ip).is_loopback:
             return Popen(cmd, shell=True)
         else:
@@ -677,7 +682,7 @@ class Database(object):
         if len(videos) == 0:
             raise ScannerException('Must ingest at least one video.')
 
-        [table_names, paths] = zip(*videos)
+        [table_names, paths] = list(zip(*videos))
         to_delete = []
         for table_name in table_names:
             if self.has_table(table_name):
@@ -695,7 +700,7 @@ class Database(object):
             lambda: self._master.IngestVideos(ingest_params))
         if not ingest_result.result.success:
             raise ScannerException(ingest_result.result.msg)
-        failures = zip(ingest_result.failed_paths, ingest_result.failed_messages)
+        failures = list(zip(ingest_result.failed_paths, ingest_result.failed_messages))
 
         self._cached_db_metadata = None
         return ([self.table(t) for (t, p) in videos
@@ -718,7 +723,7 @@ class Database(object):
         """
         table_names = ['{}:{:03d}'.format(collection_name, i)
                        for i in range(len(videos))]
-        tables, failures = self.ingest_videos(zip(table_names, videos), force)
+        tables, failures = self.ingest_videos(list(zip(table_names, videos)), force)
         collection = self.new_collection(
             collection_name, tables, force)
         return collection, failures
@@ -982,7 +987,7 @@ class Database(object):
             opts = self.protobufs.OutputColumnCompression()
             opts.codec = 'default'
             if out_col._type == self.protobufs.Video:
-                for k, v in out_col._encode_options.iteritems():
+                for k, v in out_col._encode_options.items():
                     if k == 'codec':
                         opts.codec = v
                     else:
@@ -1000,7 +1005,7 @@ class Database(object):
         for job in bulk_job.jobs():
             j = job_params.jobs.add()
             output_table_name = None
-            for op_col, args in job.op_args().iteritems():
+            for op_col, args in job.op_args().items():
                 if isinstance(op_col, Op):
                     op = op_col
                 else:

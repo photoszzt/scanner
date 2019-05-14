@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import object
 from scannerpy.common import *
 
 DEFAULT_TASK_SIZE = 250
 
-class Sampler:
+class Sampler(object):
     """
     Utility for specifying which frames of a video (or which rows of a table)
     to run a computation over.

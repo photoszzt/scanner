@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import object
 from scannerpy.common import *
 
 DEFAULT_GROUP_SIZE = 250
 
-class TaskPartitioner:
+class TaskPartitioner(object):
     """
     Utility for specifying how to partition the output domain of a job into
     tasks.
