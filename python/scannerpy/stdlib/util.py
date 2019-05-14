@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from future import standard_library
+standard_library.install_aliases()
 import os
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import errno
 
 def mkdir_p(path):
@@ -26,7 +28,7 @@ def download_temp_file(url, local_path=None):
     mkdir_p(os.path.dirname(local_path))
     if not os.path.isfile(local_path):
         print('Downloading {:s} to {:s}...'.format(url, local_path))
-        f = urllib2.urlopen(url)
+        f = urllib.request.urlopen(url)
         with open(local_path, 'wb') as local_f:
             local_f.write(f.read())
     return local_path

@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import object
 import tensorflow as tf
 
-class TensorFlowKernel:
+class TensorFlowKernel(object):
     def __init__(self, protobufs, config):
         # TODO: wrap this in "with device"
         config = tf.ConfigProto(allow_soft_placement = True)

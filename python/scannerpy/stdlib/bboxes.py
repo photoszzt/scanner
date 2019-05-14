@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import zip
 import numpy as np
 import cv2
 
@@ -78,7 +79,7 @@ def draw(vid_table, bbox_table, output_path, fps=24, threshold=0.0,
         rows = bbox_table.parent_rows()
         bboxes = [b for _, b in bbox_table.load([0], parsers.bboxes)]
     else:
-        [rows, bboxes] = zip(*bbox_table)
+        [rows, bboxes] = list(zip(*bbox_table))
     frames = [f[0] for _, f in vid_table.load([0], rows=rows)]
 
     frame_shape = frames[0].shape
